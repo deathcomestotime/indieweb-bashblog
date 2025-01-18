@@ -16,25 +16,37 @@ global_config=".config"
 # This function will load all the variables defined here. They might be overridden
 # by the 'global_config' file contents
 global_variables() {
-    global_software_name="BashBlog"
-    global_software_version="2.10"
-
+    global_software_name="BashBlog - Indieweb Version"
+    global_software_version="1.0"
+    
+    global_lang="en"
     # Blog title
     global_title="My fancy blog"
     # The typical subtitle for each blog
     global_description="A blog about turtles and carrots"
     # The public base URL for this blog
-    global_url="http://example.com/blog"
+    global_url="https://example.com/blog"
+    # Your profile picture (default is emoji)
+    global_icon="icon.svg"
 
     # Your name
     global_author="John Smith"
     # You can use twitter or facebook or anything for global_author_url
-    global_author_url="http://twitter.com/example" 
+    global_author_url="https://twitter.com/example" 
     # Your email
     global_email="john@smith.com"
 
     # CC by-nc-nd is a good starting point, you can change this to "&copy;" for Copyright
-    global_license="CC by-nc-nd"
+    global_license="CC BY-NC-ND"
+
+    # Webmentions
+    # Ask for webmentions before posting. Default is true. Empty out to set to false
+    global_wm_enabled="true"
+    # your Webmention endpoint
+    global_wm_endpoint="https://webmention.io/example.com/webmention"
+    # Display received Webmentions on your pages. Default is true. Empty out to set to false
+    global_display_wm="true"
+
 
     # If you have a Google Analytics ID (UA-XXXXX) and wish to use the standard
     # embedding code, put it on global_analytics
@@ -128,7 +140,7 @@ global_variables() {
     # "Tags:" (beginning of line in HTML file with list of all tags for this article)
     template_tags_line_header="Tags:"
     # "Back to the index page" (used on archive page, it is link to blog index)
-    template_archive_index_page="Back to the index page"
+    template_archive_index_page="Home"
     # "Subscribe" (used on bottom of index page, it is link to RSS feed)
     template_subscribe="Subscribe"
     # "Subscribe to this page..." (used as text for browser feed button that is embedded to html)
@@ -163,6 +175,13 @@ global_variables() {
     [[ -f Markdown.pl ]] && markdown_bin=./Markdown.pl || markdown_bin=$(which Markdown.pl 2>/dev/null || which markdown 2>/dev/null)
 }
 
+    # Javascript for displaying webmentions on the page
+webmention_js="webmention.js"
+    if [[ -z $global_display_wm ]] && [[ $(ls webmention.js 2>/dev/null) = "" ]]; then
+    wget -O $webmention_js "https://raw.githubusercontent.com/PlaidWeb/webmention.js/refs/heads/main/static/webmention.js"
+    fi
+ 
+   
 # Check for the validity of some variables
 # DO NOT EDIT THIS FUNCTION unless you know what you're doing
 global_variables_check() {
@@ -254,6 +273,12 @@ disqus_footer() {
     </script>'
 }
 
+
+# sets that icon.svg
+if [[ $(ls icon.svg 2>/dev/null) = "" ]]; then
+wget -O icon.svg https://openmoji.org/data/color/svg/1F9D1-200D-1F4BB.svg
+fi
+
 # Reads HTML file from stdin, prints its content to stdout
 # $1    where to start ("text" or "entry")
 # $2    where to stop ("text" or "entry")
@@ -310,7 +335,6 @@ edit() {
             # Title
             get_post_title "$1" > "$TMPFILE"
             # Post text with plaintext tags
-            get_html_file_content 'text' 'text' <"$1" | sed "/^<p>$template_tags_line_header/s|<a href='$prefix_tags\([^']*\).html'>\\1</a>|\\1|g" >> "$TMPFILE"
             $EDITOR "$TMPFILE"
             filename=$1
         fi
@@ -342,11 +366,11 @@ edit() {
 twitter_card() {
     [[ -z $global_twitter_username ]] && return
     
-    echo "<meta name='twitter:card' content='summary' />"
-    echo "<meta name='twitter:site' content='@$global_twitter_username' />"
-    echo "<meta name='twitter:title' content='$2' />" # Twitter truncates at 70 char
+    echo "<meta name='twitter:card' content='summary' >"
+    echo "<meta name='twitter:site' content='@$global_twitter_username' >"
+    echo "<meta name='twitter:title' content='$2' >" # Twitter truncates at 70 char
     description=$(grep -v "^<p>$template_tags_line_header" "$1" | sed -e 's/<[^>]*>//g' | tr '\n' ' ' | sed "s/\"/'/g" | head -c 250) 
-    echo "<meta name='twitter:description' content=\"$description\" />"
+    echo "<meta name='twitter:description' content=\"$description\" >"
 
     # For the image we try to locate the first image in the article
     image=$(sed -n '2,$ d; s/.*<img.*src="\([^"]*\)".*/\1/p' "$1") 
@@ -359,7 +383,7 @@ twitter_card() {
 
     # Final housekeeping
     [[ $image =~ ^https?:// ]] || image=$global_url/$image # Check that URL is absolute
-    echo "<meta name='twitter:image' content='$image' />"
+    echo "<meta name='twitter:image' content='$image' >"
 }
 
 # Adds the code needed by the twitter button
@@ -386,7 +410,7 @@ twitter() {
 
     echo "<a href=\"https://twitter.com/share\" class=\"twitter-share-button\" data-text=\"$template_twitter_comment\" data-url=\"$1\""
     echo " data-via=\"$global_twitter_username\""
-    echo ">$template_twitter_button</a>	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=\"//platform.twitter.com/widgets.js\";fjs.parentNode.insertBefore(js,fjs);}}(document,\"script\",\"twitter-wjs\");</script>"
+    echo ">$template_twitter_button</a>	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=\"//platform.twitter.comwidgets.js\";fjs.parentNode.insertBefore(js,fjs);}}(document,\"script\",\"twitter-wjs\");</script>"
     echo "</p>"
 }
 
@@ -447,58 +471,56 @@ create_html_page() {
         # stuff to add before the actual body content
         [[ -n $body_begin_file ]] && cat "$body_begin_file"
         [[ $filename = $index_file* ]] && [[ -n $body_begin_file_index ]] && cat "$body_begin_file_index"
-        # body divs
-        echo '<div id="divbodyholder">'
-        echo '<div class="headerholder"><div class="header">'
+        # body 
+        echo '<header>'
         # blog title
-        echo '<div id="title">'
         cat .title.html
-        echo '</div></div></div>' # title, header, headerholder
-        echo '<div id="divbody"><div class="content">'
-
+        echo '</header>' # header
+        echo '<main>'
         file_url=${filename#./}
         file_url=${file_url%.rebuilt} # Get the correct URL when rebuilding
         # one blog entry
         if [[ $index == no ]]; then
             echo '<!-- entry begin -->' # marks the beginning of the whole post
-            echo "<h3><a class=\"ablack\" href=\"$file_url\">"
+            echo '<article class=h-entry>'
+            echo "<h2><a class=\"ablack\" href=\"$file_url\">"
             # remove possible <p>'s on the title because of markdown conversion
             title=${title//<p>/}
             title=${title//<\/p>/}
             echo "$title"
-            echo '</a></h3>'
+            echo '</a></h2>'
             if [[ -z $timestamp ]]; then
                 echo "<!-- $date_inpost: #$(LC_ALL=$date_locale date +"$date_format_timestamp")# -->"
             else
                 echo "<!-- $date_inpost: #$(LC_ALL=$date_locale date +"$date_format_timestamp" --date="$timestamp")# -->"
             fi
             if [[ -z $timestamp ]]; then
-                echo -n "<div class=\"subtitle\">$(LC_ALL=$date_locale date +"$date_format")"
+                echo -n "<p class=\"subtitle\"><time class='dt-published' datetime=$(date '+%Y-%m-%d')>$(LC_ALL=$date_locale date +"$date_format")</time>"
             else
-                echo -n "<div class=\"subtitle\">$(LC_ALL=$date_locale date +"$date_format" --date="$timestamp")"
+                echo -n "<p class=\"subtitle\"><time class='dt-published' datetime=$(date '+%Y-%m-%d')>$(LC_ALL=$date_locale date +"$date_format" --date="$timestamp")</time>"
             fi
-            [[ -n $author ]] && echo -e " &mdash; \n$author"
-            echo "</div>"
+            [[ -n $author ]] && echo -e " &mdash; <span class=\"p-author h-card\"><a href=\"$global_url\" class=\"u-url\"><img aria-hidden=true src=$global_icon alt=\"\" class=\"u-photo\"></a>$global_author</span> ($global_license)"
+            echo "</p>"
             echo '<!-- text begin -->' # This marks the text body, after the title, date...
         fi
         cat "$content" # Actual content
         if [[ $index == no ]]; then
-            echo -e '\n<!-- text end -->'
+            echo -e '<!-- text end -->'
 
             twitter "$global_url/$file_url"
-
+            echo '</article>'
             echo '<!-- entry end -->' # absolute end of the post
         fi
-
-        echo '</div>' # content
-
+        if [[ -n $global_display_wm ]]; then
+           echo '<div sort-by=type id="webmentions"></div>' # display Webmentions
+        fi
         # Add disqus commments except for index and all_posts pages
         [[ $index == no ]] && disqus_body
-
+        echo "</main>"
         # page footer
         cat .footer.html
         # close divs
-        echo '</div></div>' # divbody and divbodyholder 
+#        echo '</div></div>' # divbody and divbodyholder 
         disqus_footer
         [[ -n $body_end_file ]] && cat "$body_end_file"
         echo '</body></html>'
@@ -537,7 +559,8 @@ parse_file() {
                 done
             fi
             content=$filename.tmp
-        # Parse possible tags
+
+       # Parse possible tags
         elif [[ $line == "<p>$template_tags_line_header"* ]]; then
             tags=$(echo "$line" | cut -d ":" -f 2- | sed -e 's/<\/p>//g' -e 's/^ *//' -e 's/ *$//' -e 's/, /,/g')
             IFS=, read -r -a array <<< "$tags"
@@ -549,6 +572,7 @@ parse_file() {
         else
             echo "$line" >> "$content"
         fi
+
     done < "$1"
 
     # Create the actual html page
@@ -598,12 +622,72 @@ The rest of the text file is a **Markdown** blog post. The process will continue
 as soon as you exit your editor.
 
 $template_tags_line_header keep-this-tag-format, tags-are-optional, beware-with-underscores-in-markdown, example
+
+
 EOF
     fi
     chmod 600 "$TMPFILE"
 
     post_status="E"
     filename=""
+  # ask for webmentions
+if [[ -n $global_wm_enabled ]]; then
+        echo -n "Do you want to send a webmention? y/N
+"
+        read -r wm_value
+            if [[ $wm_value == y* || $wm_value == Y* ]]; then
+            echo '(L)ike/(Re)ply/(B)ookmark/(Rs)vp?' 
+            read -r wm_type
+            echo "URL:"
+            read -r wm_URL
+                if [[ $wm_URL = "" ]]; then
+                echo "Not a URL. Nothing"
+                else
+                echo 'Message:' 
+                read -r wm_message_raw
+                    if [[ $wm_type == l* || $wm_type == L* ]]; then
+                    wm_type_full='like'
+                    wm_text="Like"
+                    wm_prepostion='of'
+                    wm_extra='u'
+                    elif [[ $wm_type == rs* || $wm_type == RS* || $wm_type == Rs* ]]; then
+                    rsvp="true"
+                    echo "Are you going (yes/no/maybe)"
+                    wm_type_full='reply'
+                    wm_text="Reply"
+                    wm_prepostion='to'
+                    wm_extra='u-in'
+                    read -r rsvp_value
+                    elif [[ $wm_type == re* || $wm_type == RE* || $wm_type == Re* ]]; then
+                    wm_type_full='reply'
+                    wm_text="Reply"
+                    wm_prepostion='to'
+                    wm_extra='u-in'
+                    elif [[ $wm_type == b* || $wm_type == B* ]]; then
+                    wm_type_full='bookmark'
+                    wm_text="Bookmark"
+                    wm_prepostion='of'
+                    wm_extra='u'
+                    else
+                    echo "Webmention type not recognized. Webmention aborted, but post will be generated regardless."
+                    fi
+             
+                fi
+
+# Put Webmention code into line 2 before opening the editor
+        wm_formatted_type="$wm_extra-$wm_type_full-$wm_prepostion"
+        wm_url_title="$(curl $wm_URL |  perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si' | sed 's/\//\\\//g')" 
+        wm_message="$(echo $wm_message_raw | sed 's/\//\\\//g')"
+        if [[ $rsvp == "true" ]]; then
+            sed -i "2s/.*/\n<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value<\/data> to <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL | sed 's/\//\\\//g')\">$wm_url_title<\/a> <pre class=e-content>$wm_message<\/pre>/g" $filename 
+        else
+            sed -i "2s/.*/\n<p class=\"$wm_type_full\">$wm_text $wm_prepostion <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL | sed 's/\//\\\//g')\">$wm_url_title<\/a> <pre class=e-content>$wm_message<\/pre>\n/g" $TMPFILE
+        fi
+
+        else
+        echo -n "Okay :^)" # no webmention? no problem
+        fi
+fi
     while [[ $post_status != "p" && $post_status != "P" ]]; do
         [[ -n $filename ]] && rm "$filename" # Delete the generated html file, if any
         $EDITOR "$TMPFILE"
@@ -612,6 +696,7 @@ EOF
             parse_file "$html_from_md"
             rm "$html_from_md"
         else
+
             parse_file "$TMPFILE" # this command sets $filename as the html processed file
         fi
 
@@ -621,6 +706,8 @@ EOF
 
         echo -n "[P]ost this entry, [E]dit again, [D]raft for later? (p/E/d) "
         read -r post_status
+
+
         if [[ $post_status == d || $post_status == D ]]; then
             mkdir -p "drafts/"
             chmod 700 "drafts/"
@@ -639,6 +726,7 @@ EOF
         fi
     done
 
+      
     if [[ $fmt == md && -n $save_markdown ]]; then
         mv "$TMPFILE" "${filename%%.*}.md"
     else
@@ -646,6 +734,23 @@ EOF
     fi
     chmod 644 "$filename"
     echo "Posted $filename"
+if [[ $wm_value == y* || $wm_value == Y* ]]; then
+wm_sender="curl -si $(echo $(curl -si $wm_URL | grep 'rel=\"webmention\"') | grep -o -m 1 'https://.*' | sed 's/">//g') \
+  -d source=$global_url/$filename \
+  -d target=$wm_URL"
+
+echo -e "$wm_sender\n\nOK? (y/N)"
+read ok
+if [[ $ok == y* ]]; then
+$wm_sender
+else
+echo "What is the webmention endpoint?"
+read wm_endpoint
+curl -si $wm_endpoint \
+  -d source=$global_url/$filename \
+  -d target=$wm_URL
+fi
+fi
     relevant_tags=$(tags_in_post $filename)
     if [[ -n $relevant_tags ]]; then
         relevant_posts="$(posts_with_tags $relevant_tags) $filename"
@@ -662,7 +767,7 @@ all_posts() {
     done
 
     {
-        echo "<h3>$template_archive_title</h3>"
+        echo "<h2>$template_archive_title</h2>"
         prev_month=""
         while IFS='' read -r i; do
             is_boilerplate_file "$i" && continue
@@ -671,7 +776,7 @@ all_posts() {
             month=$(LC_ALL=$date_locale date -r "$i" +"$date_allposts_header")
             if [[ $month != "$prev_month" ]]; then
                 [[ -n $prev_month ]] && echo "</ul>"  # Don't close ul before first header
-                echo "<h4 class='allposts_header'>$month</h4>"
+                echo "<h3 class='allposts_header'>$month</h3>"
                 echo "<ul>"
                 prev_month=$month
             fi
@@ -684,7 +789,7 @@ all_posts() {
         done < <(ls -t ./*.html)
         echo "" 1>&3
         echo "</ul>"
-        echo "<div id=\"all_posts\"><a href=\"./$index_file\">$template_archive_index_page</a></div>"
+ 
     } 3>&1 >"$contentfile"
 
     create_html_page "$contentfile" "$archive_index.tmp" yes "$global_title &mdash; $template_archive_title" "$global_author"
@@ -702,7 +807,7 @@ all_tags() {
     done
 
     {
-        echo "<h3>$template_tags_title</h3>"
+        echo "<h2>$template_tags_title</h2>"
         echo "<ul>"
         for i in $prefix_tags*.html; do
             [[ -f "$i" ]] || break
@@ -719,7 +824,7 @@ all_tags() {
         done
         echo "" 1>&3
         echo "</ul>"
-        echo "<div id=\"all_posts\"><a href=\"./$index_file\">$template_archive_index_page</a></div>"
+  
     } 3>&1 > "$contentfile"
 
     create_html_page "$contentfile" "$tags_index.tmp" yes "$global_title &mdash; $template_tags_title" "$global_author"
@@ -739,8 +844,10 @@ rebuild_index() {
     done
 
     # Create the content file
+
     {
         n=0
+echo "<div class=\"h-feed\">"
         while IFS='' read -r i; do
             is_boilerplate_file "$i" && continue;
             if ((n >= number_of_index_articles)); then break; fi
@@ -752,10 +859,10 @@ rebuild_index() {
             echo -n "." 1>&3
             n=$(( n + 1 ))
         done < <(ls -t ./*.html) # sort by date, newest first
-
+echo "</div>"
         feed=$blog_feed
         if [[ -n $global_feedburner ]]; then feed=$global_feedburner; fi
-        echo "<div id=\"all_posts\"><a href=\"$archive_index\">$template_archive</a> &mdash; <a href=\"$tags_index\">$template_tags_title</a> &mdash; <a href=\"$feed\">$template_subscribe</a></div>"
+
     } 3>&1 >"$contentfile"
 
     echo ""
@@ -780,7 +887,7 @@ posts_with_tags() {
     (($# < 1)) && return
     set -- "${@/#/$prefix_tags}"
     set -- "${@/%/.html}"
-    sed -n '/^<h3><a class="ablack" href="[^"]*">/{s/.*href="\([^"]*\)">.*/\1/;p;}' "$@" 2> /dev/null
+    sed -n '/^<h2><a class="ablack" href="[^"]*">/{s/.*href="\([^"]*\)">.*/\1/;p;}' "$@" 2> /dev/null
 }
 
 # Rebuilds tag_*.html files
@@ -845,14 +952,14 @@ rebuild_tags() {
 #
 # $1 the html file
 get_post_title() {
-    awk '/<h3><a class="ablack" href=".+">/, /<\/a><\/h3>/{if (!/<h3><a class="ablack" href=".+">/ && !/<\/a><\/h3>/) print}' "$1"
+    awk '/<h2><a class="ablack" href=".+">/, /<\/a><\/h2>/{if (!/<h2><a class="ablack" href=".+">/ && !/<\/a><\/h2>/) print}' "$1"
 }
 
 # Return the post author
 #
 # $1 the html file
 get_post_author() { 
-    awk '/<div class="subtitle">.+/, /<!-- text begin -->/{if (!/<div class="subtitle">.+/ && !/<!-- text begin -->/) print}' "$1" | sed 's/<\/div>//g'
+    awk '/<time .+/, /<!-- text begin -->/{if (!/<time. +/ && !/<!-- text begin -->/) print}' "$1" | sed 's/<\/time>//g'
 }
 
 # Displays a list of the tags
@@ -945,30 +1052,36 @@ make_rss() {
 create_includes() {
     {
         echo "<h1 class=\"nomargin\"><a class=\"ablack\" href=\"$global_url/$index_file\">$global_title</a></h1>" 
-        echo "<div id=\"description\">$global_description</div>"
-    } > ".title.html"
+        echo "<nav><p><a href=\"$global_url\">$template_archive_index_page</a> <a href=\"$archive_index\">$template_archive_title</a>  <a href=\"$tags_index\">$template_tags_title</a> </p></nav>"
+   echo "<div id=\"description\">$global_description</div>"   
+ } > ".title.html"
 
     if [[ -f $header_file ]]; then cp "$header_file" .header.html
     else {
-        echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">'
-        echo '<html xmlns="http://www.w3.org/1999/xhtml"><head>'
-        echo '<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />'
-        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0" />'
-        printf '<link rel="stylesheet" href="%s" type="text/css" />\n' "${css_include[@]}"
+        echo '<!DOCTYPE html>'
+        echo "<html lang='$global_lang'><head>"
+        echo '<meta http-equiv="Content-type" content="text/html;charset=UTF-8">'
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        echo "<link rel=\"icon\" sizes=\"21x21\" href=\"$global_icon\">"
+        echo "<link rel=\"webmention\" href=\"$global_wm_endpoint\">"
+        if [[ -n $global_display_wm ]]; then
+            echo "<script src=\"$webmention_js\" async></script>"
+        fi
+        printf '<link rel="stylesheet" href="%s" type="text/css">\n' "${css_include[@]}"
         if [[ -z $global_feedburner ]]; then
-            echo "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"$template_subscribe_browser_button\" href=\"$blog_feed\" />"
+            echo "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"$template_subscribe_browser_button\" href=\"$blog_feed\">"
         else 
-            echo "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"$template_subscribe_browser_button\" href=\"$global_feedburner\" />"
+            echo "<link rel=\"alternate\" type=\"application/rss+xml\" title=\"$template_subscribe_browser_button\" href=\"$global_feedburner\">"
         fi
         } > ".header.html"
     fi
 
     if [[ -f $footer_file ]]; then cp "$footer_file" .footer.html
     else {
-        protected_mail=${global_email//@/&#64;}
-        protected_mail=${protected_mail//./&#46;}
-        echo "<div id=\"footer\">$global_license <a href=\"$global_author_url\">$global_author</a> &mdash; <a href=\"mailto:$protected_mail\">$protected_mail</a><br/>"
-        echo 'Generated with <a href="https://github.com/cfenollosa/bashblog">bashblog</a>, a single bash script to easily create blogs like this one</div>'
+#        protected_mail=${global_email//@/&#64;}
+#        protected_mail=${protected_mail//./&#46;}
+        echo "<footer>Subscribe via <a href="$blog_feed">rss</a>!<br>Contact me via <a href=\"mailto:$global_email\">$global_email</a><br>"
+        echo '<p><small>Generated using <a href="">indieweb-bashblog</a>, a single bash script to easily create blogs like this one &mdash; with Webmention and Microformats support</small></p></footer>'
         } >> ".footer.html"
     fi
 }
@@ -989,15 +1102,50 @@ create_css() {
         a.ablack{color:black !important;}
         li{margin-bottom:8px;}
         ul,ol{margin-left:24px;margin-right:24px;}
-        #all_posts{margin-top:24px;text-align:center;}
-        .subtitle{font-size:small;margin:12px 0px;}
+        .subtitle{font-size:small;margin:12px 0px;line-height: 2.3;}
         .content p{margin-left:24px;margin-right:24px;}
-        h1{margin-bottom:12px !important;}
         #description{font-size:large;margin-bottom:12px;}
-        h3{margin-top:42px;margin-bottom:8px;}
-        h4{margin-left:24px;margin-right:24px;}
+        h2{padding-top:42px;margin-bottom:8px;}
+
         img{max-width:100%;}
-        #twitter{line-height:20px;vertical-align:top;text-align:right;font-style:italic;color:#333;margin-top:24px;font-size:14px;}' > blog.css
+        #twitter{line-height:20px;vertical-align:top;text-align:right;font-style:italic;color:#333;margin-top:24px;font-size:14px;}
+/* Microformats */
+
+.h-card {
+display: inline-block;
+  background: var(--code-background-color);
+  border: 3px solid var(--code-background-color);
+padding-right:.6rem
+}
+.u-photo {
+width: 1.5rem;
+  height: 1.5rem;
+  padding: .3rem .6rem 0 .3rem;
+vertical-align: text-bottom;}
+.p-rsvp {
+font-weight:bold
+}
+
+/* Sent Webmentions */
+.like::before {content:"❤️";padding-right:.66rem;}
+.reply::before {content:"🗨️";padding-right:.66rem;}
+.bookmark::before {content:"🔖";padding-right:.66rem;}
+.rsvp::before {content:"📅";padding-right:.66rem;}
+
+
+/* Webmention.js */
+
+#webmentions::before {content:"";text-align:center;display:block;}
+
+#webmentions ul{margin-left:0px;padding-left:0}
+#webmentions li{list-style-type:none;padding-bottom:1.6rem;}
+a.source::after { content: '\A\A';     white-space: pre;}
+#webmentions img 
+{border-radius:90px;height:2rem;object-fit:cover;margin-right:-10px} 
+
+
+
+' > blog.css
     fi
 
     # If there is a style.css from the parent page (i.e. some landing page)
@@ -1006,22 +1154,179 @@ create_css() {
     if [[ -f ../style.css ]] && [[ ! -f main.css ]]; then
         ln -s "../style.css" "main.css" 
     elif [[ ! -f main.css ]]; then
-        echo 'body{font-family:Georgia,"Times New Roman",Times,serif;margin:0;padding:0;background-color:#F3F3F3;}
-        #divbodyholder{padding:5px;background-color:#DDD;width:100%;max-width:874px;margin:24px auto;}
-        #divbody{border:solid 1px #ccc;background-color:#fff;padding:0px 48px 24px 48px;top:0;}
-        .headerholder{background-color:#f9f9f9;border-top:solid 1px #ccc;border-left:solid 1px #ccc;border-right:solid 1px #ccc;}
-        .header{width:100%;max-width:800px;margin:0px auto;padding-top:24px;padding-bottom:8px;}
-        .content{margin-bottom:5%;}
-        .nomargin{margin:0;}
-        .description{margin-top:10px;border-top:solid 1px #666;padding:10px 0;}
-        h3{font-size:20pt;width:100%;font-weight:bold;margin-top:32px;margin-bottom:0;}
-        .clear{clear:both;}
-        #footer{padding-top:10px;border-top:solid 1px #666;color:#333333;text-align:center;font-size:small;font-family:"Courier New","Courier",monospace;}
-        a{text-decoration:none;color:#003366 !important;}
-        a:visited{text-decoration:none;color:#336699 !important;}
-        blockquote{background-color:#f9f9f9;border-left:solid 4px #e9e9e9;margin-left:12px;padding:12px 12px 12px 24px;}
-        blockquote img{margin:12px 0px;}
-        blockquote iframe{margin:12px 0px;}' > main.css
+# This is the CSS from https://bearblog.dev/, adjusted slightly
+echo ":root {
+    --width: 800px;
+    --font-main: Verdana, sans-serif;
+    --font-secondary: Verdana, sans-serif;
+    --font-scale: 1em;
+    --background-color: #fff;
+    --heading-color: #222;
+    --text-color: #444;
+    --link-color: #3273dc;
+    --visited-color:  #8b6fcb;
+    --code-background-color: #f2f2f2;
+    --code-color: #222;
+    --blockquote-color: #222;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: #01242e;
+        --heading-color: #eee;
+        --text-color: #ddd;
+        --link-color: #8cc2dd;
+        --visited-color:  #8b6fcb;
+        --code-background-color: #000;
+        --code-color: #ddd;
+        --blockquote-color: #ccc;
+    }
+}
+
+body {
+    font-family: var(--font-secondary);
+    font-size: var(--font-scale);
+    margin: auto;
+    padding: 20px;
+    max-width: var(--width);
+    text-align: left;
+    background-color: var(--background-color);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+article {
+padding-bottom: 42px;
+}
+
+.h-feed article {
+border-left: 2px solid var(--text-color);
+padding-left: 21px;
+background:  var(--code-background-color)
+}
+
+hr {border:none}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-main);
+    color: var(--heading-color);
+}
+
+a {
+    color: var(--link-color);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline; 
+}
+
+nav a {
+    margin-right: 8px;
+}
+
+strong, b {
+    color: var(--heading-color);
+}
+
+button {
+    margin: 0;
+    cursor: pointer;
+}
+
+main {
+    line-height: 1.6;
+}
+
+table {
+    width: 100%;
+}
+
+
+time {
+ 	font-family: monospace;
+  	font-style: normal;
+  	font-size: 15px;
+
+hr {
+    border: 0;
+    border-top: 1px dashed;
+}
+
+img {
+    max-width: 100%;
+}
+
+code {
+    font-family: monospace;
+    padding: 2px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+}
+
+blockquote {
+    border-left: 1px solid #999;
+    color: var(--code-color);
+    padding-left: 20px;
+    font-style: italic;
+}
+
+footer {
+    padding: 25px 0;
+    text-align: center;
+}
+
+.title:hover {
+    text-decoration: none;
+}
+
+.title h1 {
+    font-size: 1.5em;
+}
+
+.inline {
+    width: auto !important;
+}
+
+.highlight, .code {
+    padding: 1px 15px;
+    background-color: var(--code-background-color);
+    color: var(--code-color);
+    border-radius: 3px;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    overflow-x: auto;
+}
+
+/* blog post list */
+ul.blog-posts {
+    list-style-type: none;
+    padding: unset;
+}
+
+ul.blog-posts li {
+    display: flex;
+}
+
+ul.blog-posts li span {
+    flex: 0 0 130px;
+}
+
+ul.blog-posts li a:visited {
+    color: var(--visited-color);
+
+}" > main.css
+
     fi
 }
 
@@ -1177,7 +1482,7 @@ do_main() {
     create_css
     create_includes
     [[ $1 == post ]] && write_entry "$@"
-    [[ $1 == rebuild ]] && rebuild_all_entries && rebuild_tags
+    [[ $1 == rebuild ]] && rebuild_all_entries && rebuild_tags 
     [[ $1 == delete ]] && rm "$2" &> /dev/null && rebuild_tags
     if [[ $1 == edit ]]; then
         if [[ $2 == -n ]]; then
