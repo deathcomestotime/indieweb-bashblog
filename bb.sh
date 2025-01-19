@@ -1089,7 +1089,7 @@ create_includes() {
 #        protected_mail=${global_email//@/&#64;}
 #        protected_mail=${protected_mail//./&#46;}
         echo "<footer>Subscribe via <a href="$blog_feed">rss</a>!<br>Contact me via <a href=\"mailto:$global_email\">$global_email</a><br>"
-        echo '<p><small>Generated using <a href="">indieweb-bashblog</a>, a single bash script to easily create blogs like this one &mdash; with Webmention and Microformats support</small></p></footer>'
+        echo '<p><small>Generated using <a href="https://github.com/muscadomestica/indieweb-bashblog" target="_blank">indieweb-bashblog</a>, a single bash script to easily create blogs like this one &mdash; with Webmention and Microformats support</small></p></footer>'
         } >> ".footer.html"
     fi
 }
