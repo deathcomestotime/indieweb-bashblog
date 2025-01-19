@@ -741,7 +741,7 @@ EOF
     else
         rm "$TMPFILE"
     fi
-    # replace symbol with open heart protocol https://openheart.fyi/, build inpage nav
+    # replace symbol with open heart protocol https://openheart.fyi/
     sed -i "s|&lt;❤️>|<open-heart href=\"https://corazon.sploot.com?id=$global_url/$filename\" emoji=\"❤️\">❤️</open-heart><!-- load webcomponent --><script src=\"https://unpkg.com/open-heart-element\" type=\"module\"></script><!-- when the webcomponent loads, fetch the current counts for that page --><script>window.customElements.whenDefined('open-heart').then(() => { for (const oh of document.querySelectorAll('open-heart')) { oh.getCount() } })\n// refresh component after click\nwindow.addEventListener('open-heart', e => { e && e.target && e.target.getCount && e.target.getCount() })</script>|" $filename
     chmod 644 "$filename"
     echo "Posted $filename"
