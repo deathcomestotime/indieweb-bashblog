@@ -17,6 +17,7 @@ What's new
 * support for automatically sending said Webmention after posting
 * support for displaying Webmentions on the page, using [webmention.js](https://github.com/PlaidWeb/webmention.js) 
 * replaced default CSS with that of [bearblog](https://github.com/HermanMartinus/bearblog/)
+* added [Open Heart](https://openheart.fyi/) protocol
 
 [![demo](https://dead.garden/blog/img/bashblog.png)](https://dead.garden/blog/img/bashblog.png)
 
