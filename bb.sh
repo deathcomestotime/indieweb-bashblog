@@ -569,6 +569,8 @@ parse_file() {
         else
             echo "$line" >> "$content"
         fi
+    # replace symbol with open heart protocol https://openheart.fyi/
+    sed -i "s|&lt;❤️>|<open-heart href=\"https://corazon.sploot.com?id=$global_url/$filename\"  emoji=\"❤️\">❤️</open-heart><!-- load webcomponent --><script src=\"https://unpkg.com/open-heart-element\" type=\"module\"></script><!-- when the webcomponent loads, fetch the current counts for that page --><script>\nwindow.customElements.whenDefined('open-heart').then(() => {\nfor (const oh of document.querySelectorAll('open-heart')) {\noh.getCount()\n}\n})\n// refresh component after click\nwindow.addEventListener('open-heart', e => {\ne \&\& e.target \&\& e.target.getCount \&\& e.target.getCount()})</script>|" $content
 
     done < "$1"
 
@@ -654,11 +656,10 @@ if [[ -n $global_wm_enabled ]]; then
                 fi
 # Put Webmention code into line 2 before opening the editor
         wm_formatted_type="$wm_extra-$wm_type_full-$wm_prepostion"
-        wm_url_title="$(curl -s $wm_URL |  perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si' |  sed 's/|/\\|/g' | sed 's/\&/\\&/g')" 
         if [[ $rsvp == "true" ]]; then
-           echo "<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value</data> to <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL  | sed 's/\&/\\&/g')\"> $wm_url_title </a> <p class=e-content>$(echo $wm_message | sed 's/|/\\|/g' | sed 's/\&/\\&/g')</p>" >> "$TMPFILE"
+           echo "<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value</data> to <a class=\"$wm_formatted_type\" href=\"$wm_URL\"> $wm_url_title </a> <p class=e-content>$wm_message</p>" >> "$TMPFILE"
         else
-        echo "<p class=\"$wm_type_full\">$wm_text $wm_prepostion <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL  | sed 's/\&/\\&/g')\">$wm_url_title</a> <p class=e-content>$(echo $wm_message | sed 's/|/\\|/g' | sed 's/\&/\\&/g')</p>" >> "$TMPFILE"
+        echo "<p class=\"$wm_type_full\">$wm_text $wm_prepostion <a class=\"$wm_formatted_type\" href=\"$wm_URL\">$wm_url_title</a> <p class=e-content>$wm_message</p>" >> "$TMPFILE"
         fi
 
         else
@@ -741,8 +742,6 @@ EOF
     else
         rm "$TMPFILE"
     fi
-    # replace symbol with open heart protocol https://openheart.fyi/
-    sed -i "s|&lt;❤️>|<open-heart href=\"https://corazon.sploot.com?id=$global_url/$filename\" emoji=\"❤️\">❤️</open-heart><!-- load webcomponent --><script src=\"https://unpkg.com/open-heart-element\" type=\"module\"></script><!-- when the webcomponent loads, fetch the current counts for that page --><script>window.customElements.whenDefined('open-heart').then(() => { for (const oh of document.querySelectorAll('open-heart')) { oh.getCount() } })\n// refresh component after click\nwindow.addEventListener('open-heart', e => { e && e.target && e.target.getCount && e.target.getCount() })</script>|" $filename
     chmod 644 "$filename"
     echo "Posted $filename"
 if [[ $wm_value == y* || $wm_value == Y* ]]; then
@@ -1260,7 +1259,6 @@ a {
 a:hover {
     text-decoration: underline; 
 }
-
 
 nav a {
     margin-right: 8px;
