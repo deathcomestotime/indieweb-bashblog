@@ -656,9 +656,9 @@ if [[ -n $global_wm_enabled ]]; then
         wm_formatted_type="$wm_extra-$wm_type_full-$wm_prepostion"
         wm_url_title="$(curl -s $wm_URL |  perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si' |  sed 's/|/\\|/g' | sed 's/\&/\\&/g')" 
         if [[ $rsvp == "true" ]]; then
-           echo "<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value</data> to <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL  | sed 's/\&/\\&/g')\"> $wm_url_title </a> <p class=e-content>$(echo $wm_message | sed 's/|/\\|/g' | sed 's/\&/\\&/g')</p>|g" >> "$TMPFILE"
+           echo "<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value</data> to <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL  | sed 's/\&/\\&/g')\"> $wm_url_title </a> <p class=e-content>$(echo $wm_message | sed 's/|/\\|/g' | sed 's/\&/\\&/g')</p>" >> "$TMPFILE"
         else
-        echo "<p class=\"$wm_type_full\">$wm_text $wm_prepostion <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL  | sed 's/\&/\\&/g')\">$wm_url_title</a> <p class=e-content>$(echo $wm_message | sed 's/|/\\|/g' | sed 's/\&/\\&/g')</p>\n|g" >> "$TMPFILE"
+        echo "<p class=\"$wm_type_full\">$wm_text $wm_prepostion <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL  | sed 's/\&/\\&/g')\">$wm_url_title</a> <p class=e-content>$(echo $wm_message | sed 's/|/\\|/g' | sed 's/\&/\\&/g')</p>" >> "$TMPFILE"
         fi
 
         else
