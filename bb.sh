@@ -26,8 +26,8 @@ global_variables() {
     global_description="A blog about turtles and carrots"
     # The public base URL for this blog
     global_url="https://example.com/blog"
-    # Your profile picture (default is emoji)
-    global_icon="icon.svg"
+    # Your profile picture (default is emoji) (replace with valid URL to have your image show up on Webmentions)
+    global_icon="data:image/png;base64,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"
 
     # Your name
     global_author="John Smith"
@@ -41,7 +41,7 @@ global_variables() {
 
     # Webmentions
     # Ask for webmentions before posting. Default is true. Empty out to set to false
-    global_wm_enabled=""
+    global_wm_enabled="true"
     # your Webmention endpoint
     global_wm_endpoint="https://webmention.io/example.com/webmention"
     # Display received Webmentions on your pages. Default is true. Empty out to set to false
@@ -76,7 +76,7 @@ global_variables() {
     # Blog generated files
     # index page of blog (it is usually good to use "index.html" here)
     index_file="index.html"
-    number_of_index_articles="8"
+    number_of_index_articles="20"
     # global archive
     archive_index="all_posts.html"
     tags_index="all_tags.html"
@@ -129,6 +129,8 @@ global_variables() {
     template_archive="View more posts"
     # "All posts" (title of archive page)
     template_archive_title="All posts"
+    # At the bottom of the index page
+    template_archive_expand="View more&hellip;"
     # "All tags"
     template_tags_title="All tags"
     # "posts" (on "All tags" page, text at the end of each tag line, like "2. Music - 15 posts")
@@ -273,11 +275,6 @@ disqus_footer() {
     </script>'
 }
 
-
-# sets that icon.svg
-if [[ $(ls icon.svg 2>/dev/null) = "" ]]; then
-wget -O icon.svg https://openmoji.org/data/color/svg/1F9D1-200D-1F4BB.svg
-fi
 
 # Reads HTML file from stdin, prints its content to stdout
 # $1    where to start ("text" or "entry")
@@ -611,37 +608,13 @@ write_entry() {
     else
         TMPFILE=.entry-$RANDOM.$fmt
         echo -e "Title on this line\n" >> "$TMPFILE"
-
-        [[ $fmt == html ]] && cat << EOF >> "$TMPFILE"
-
-<p>The rest of the text file is an <b>html</b> blog post. The process will continue as soon
-as you exit your editor.</p>
-
-<p>$template_tags_line_header keep-this-tag-format, tags-are-optional, example</p>
-
-<❤️>
-
-EOF
-        [[ $fmt == md ]] && cat << EOF >> "$TMPFILE"
-
-The rest of the text file is a **Markdown** blog post. The process will continue
-as soon as you exit your editor.
-
-$template_tags_line_header keep-this-tag-format, tags-are-optional, beware-with-underscores-in-markdown, example
-
-<❤️> 
-EOF
-    fi
-    chmod 600 "$TMPFILE"
-
-    post_status="E"
-    filename=""
   # ask for webmentions
 if [[ -n $global_wm_enabled ]]; then
         echo -n "Do you want to send a webmention? y/N
 "
         read -r wm_value
             if [[ $wm_value == y* || $wm_value == Y* ]]; then
+            wm_tags="webmention, "
             echo '(L)ike/(Re)ply/(B)ookmark/(Rs)vp?' 
             read -r wm_type
             echo "URL:"
@@ -650,7 +623,7 @@ if [[ -n $global_wm_enabled ]]; then
                 echo "Not a URL. Nothing"
                 else
                 echo 'Message:' 
-                read -r wm_message_raw
+                read  wm_message
                     if [[ $wm_type == l* || $wm_type == L* ]]; then
                     wm_type_full='like'
                     wm_text="Like"
@@ -675,25 +648,53 @@ if [[ -n $global_wm_enabled ]]; then
                     wm_prepostion='of'
                     wm_extra='u'
                     else
-                    echo "Webmention type not recognized. Webmention aborted, but post will be generated regardless."
+                    echo "Webmention type not recognized."
                     fi
              
                 fi
-
 # Put Webmention code into line 2 before opening the editor
         wm_formatted_type="$wm_extra-$wm_type_full-$wm_prepostion"
-        wm_url_title="$(curl -s $wm_URL |  perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si' | sed 's/\//\\\//g')" 
-        wm_message="$(echo $wm_message_raw | sed 's/\//\\\//g')"
+        wm_url_title="$(curl -s $wm_URL |  perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si' |  sed 's/|/\\|/g' | sed 's/\&/\\&/g')" 
         if [[ $rsvp == "true" ]]; then
-            sed -i "2s/.*/\n<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value<\/data> to <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL | sed 's/\//\\\//g')\">$wm_url_title<\/a> <pre class=e-content>$wm_message<\/pre>/g" $filename 
+           echo "<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value</data> to <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL  | sed 's/\&/\\&/g')\"> $wm_url_title </a> <p class=e-content>$(echo $wm_message | sed 's/|/\\|/g' | sed 's/\&/\\&/g')</p>|g" >> "$TMPFILE"
         else
-            sed -i "2s/.*/\n<p class=\"$wm_type_full\">$wm_text $wm_prepostion <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL | sed 's/\//\\\//g')\">$wm_url_title<\/a> <pre class=e-content>$wm_message<\/pre>\n/g" $TMPFILE
+        echo "<p class=\"$wm_type_full\">$wm_text $wm_prepostion <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL  | sed 's/\&/\\&/g')\">$wm_url_title</a> <p class=e-content>$(echo $wm_message | sed 's/|/\\|/g' | sed 's/\&/\\&/g')</p>\n|g" >> "$TMPFILE"
         fi
 
         else
+        wm_tags="keep-this-tag-format, tags-are-optional, beware-with-underscores-in-markdown, example"
         echo -n "Okay :^)" # no webmention? no problem
         fi
 fi
+
+        [[ $fmt == html ]] && cat << EOF >> "$TMPFILE"
+
+<p>The rest of the text file is an <b>html</b> blog post. The process will continue as soon
+as you exit your editor.</p>
+
+<p>$template_tags_line_header $wm_tags$wm_type_full</p>
+
+<❤️>
+
+EOF
+        [[ $fmt == md ]] && cat << EOF >> "$TMPFILE"
+
+The rest of the text file is a **Markdown** blog post. The process will continue
+as soon as you exit your editor.
+
+$template_tags_line_header $wm_tags$wm_type_full
+
+<❤️> 
+EOF
+    fi
+    chmod 600 "$TMPFILE"
+
+    post_status="E"
+    filename=""
+
+
+
+
     while [[ $post_status != "p" && $post_status != "P" ]]; do
         [[ -n $filename ]] && rm "$filename" # Delete the generated html file, if any
         $EDITOR "$TMPFILE"
@@ -704,6 +705,8 @@ fi
         else
 
             parse_file "$TMPFILE" # this command sets $filename as the html processed file
+
+
         fi
         
         chmod 644 "$filename"
@@ -738,7 +741,7 @@ fi
     else
         rm "$TMPFILE"
     fi
-    # replace symbol with open heart protocol
+    # replace symbol with open heart protocol https://openheart.fyi/, build inpage nav
     sed -i "s|&lt;❤️>|<open-heart href=\"https://corazon.sploot.com?id=$global_url/$filename\" emoji=\"❤️\">❤️</open-heart><!-- load webcomponent --><script src=\"https://unpkg.com/open-heart-element\" type=\"module\"></script><!-- when the webcomponent loads, fetch the current counts for that page --><script>window.customElements.whenDefined('open-heart').then(() => { for (const oh of document.querySelectorAll('open-heart')) { oh.getCount() } })\n// refresh component after click\nwindow.addEventListener('open-heart', e => { e && e.target && e.target.getCount && e.target.getCount() })</script>|" $filename
     chmod 644 "$filename"
     echo "Posted $filename"
@@ -867,7 +870,7 @@ echo "<div class=\"h-feed\">"
             echo -n "." 1>&3
             n=$(( n + 1 ))
         done < <(ls -t ./*.html) # sort by date, newest first
-echo "</div>"
+echo "<nav><a href=\"$archive_index\">$template_archive_expand</a></nav></div>"
         feed=$blog_feed
         if [[ -n $global_feedburner ]]; then feed=$global_feedburner; fi
 
@@ -1152,6 +1155,7 @@ a.source::after { content: '\A\A';     white-space: pre;}
 {border-radius:90px;height:2rem;object-fit:cover;margin-right:-10px} 
 
 /* Open heart */
+
 open-heart {
   border:1px solid var(--fg);
   border-radius:.4em;
@@ -1170,9 +1174,8 @@ open-heart[disabled] {
 
 open-heart[count]:not([count="0"])::after {
   content:attr(count);
-        padding-left:.5rem;
+	padding-left:.5rem;
 }
-
 ' > blog.css
     fi
 
@@ -1225,13 +1228,13 @@ body {
     color: var(--text-color);
 }
 
-article {
-padding-bottom: 42px;
-}
 
 .h-feed article {
+padding:21px;
+padding-bottom: 42px;
+margin-bottom:10px;
 border-left: 2px solid var(--text-color);
-padding-left: 21px;
+padding-top:0;
 background:  var(--code-background-color)
 }
 
@@ -1257,6 +1260,7 @@ a {
 a:hover {
     text-decoration: underline; 
 }
+
 
 nav a {
     margin-right: 8px;
