@@ -676,7 +676,7 @@ if [[ -n $global_wm_enabled ]]; then
 
 # Put Webmention code into line 2 before opening the editor
         wm_formatted_type="$wm_extra-$wm_type_full-$wm_prepostion"
-        wm_url_title="$(curl $wm_URL |  perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si' | sed 's/\//\\\//g')" 
+        wm_url_title="$(curl -s $wm_URL |  perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si' | sed 's/\//\\\//g')" 
         wm_message="$(echo $wm_message_raw | sed 's/\//\\\//g')"
         if [[ $rsvp == "true" ]]; then
             sed -i "2s/.*/\n<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value<\/data> to <a class=\"$wm_formatted_type\" href=\"$(echo $wm_URL | sed 's/\//\\\//g')\">$wm_url_title<\/a> <pre class=e-content>$wm_message<\/pre>/g" $filename 
@@ -739,7 +739,7 @@ wm_sender="curl -si $(echo $(curl -si $wm_URL | grep 'rel=\"webmention\"') | gre
   -d source=$global_url/$filename \
   -d target=$wm_URL"
 
-echo -e "$wm_sender\n\nOK? (y/N)"
+echo -e "\n\nPreparing to send webmention:\n    $wm_sender\n\nDoes this look OK? (y/N)"
 read ok
 if [[ $ok == y* ]]; then
 $wm_sender
