@@ -41,7 +41,7 @@ global_variables() {
 
     # Webmentions
     # Ask for webmentions before posting. Default is true. Empty out to set to false
-    global_wm_enabled="true"
+    global_wm_enabled=""
     # your Webmention endpoint
     global_wm_endpoint="https://webmention.io/example.com/webmention"
     # Display received Webmentions on your pages. Default is true. Empty out to set to false
@@ -483,7 +483,7 @@ create_html_page() {
         if [[ $index == no ]]; then
             echo '<!-- entry begin -->' # marks the beginning of the whole post
             echo '<article class=h-entry>'
-            echo "<h2><a class=\"ablack\" href=\"$file_url\">"
+            echo "<h2><a class=\"p-name\" href=\"$file_url\">"
             # remove possible <p>'s on the title because of markdown conversion
             title=${title//<p>/}
             title=${title//<\/p>/}
@@ -582,6 +582,7 @@ parse_file() {
 
 # Manages the creation of the text file and the parsing to html file
 # also the drafts
+
 write_entry() {
     test_markdown && fmt=md || fmt=html
     f=$2
@@ -612,18 +613,23 @@ write_entry() {
         echo -e "Title on this line\n" >> "$TMPFILE"
 
         [[ $fmt == html ]] && cat << EOF >> "$TMPFILE"
+
 <p>The rest of the text file is an <b>html</b> blog post. The process will continue as soon
 as you exit your editor.</p>
 
 <p>$template_tags_line_header keep-this-tag-format, tags-are-optional, example</p>
+
+<❤️>
+
 EOF
         [[ $fmt == md ]] && cat << EOF >> "$TMPFILE"
+
 The rest of the text file is a **Markdown** blog post. The process will continue
 as soon as you exit your editor.
 
 $template_tags_line_header keep-this-tag-format, tags-are-optional, beware-with-underscores-in-markdown, example
 
-
+<❤️> 
 EOF
     fi
     chmod 600 "$TMPFILE"
@@ -699,7 +705,7 @@ fi
 
             parse_file "$TMPFILE" # this command sets $filename as the html processed file
         fi
-
+        
         chmod 644 "$filename"
         [[ -n $preview_url ]] || preview_url=$global_url
         echo "To preview the entry, open $preview_url/$filename in your browser"
@@ -732,6 +738,8 @@ fi
     else
         rm "$TMPFILE"
     fi
+    # replace symbol with open heart protocol
+    sed -i "s|&lt;❤️>|<open-heart href=\"https://corazon.sploot.com?id=$global_url/$filename\" emoji=\"❤️\">❤️</open-heart><!-- load webcomponent --><script src=\"https://unpkg.com/open-heart-element\" type=\"module\"></script><!-- when the webcomponent loads, fetch the current counts for that page --><script>window.customElements.whenDefined('open-heart').then(() => { for (const oh of document.querySelectorAll('open-heart')) { oh.getCount() } })\n// refresh component after click\nwindow.addEventListener('open-heart', e => { e && e.target && e.target.getCount && e.target.getCount() })</script>|" $filename
     chmod 644 "$filename"
     echo "Posted $filename"
 if [[ $wm_value == y* || $wm_value == Y* ]]; then
@@ -887,7 +895,7 @@ posts_with_tags() {
     (($# < 1)) && return
     set -- "${@/#/$prefix_tags}"
     set -- "${@/%/.html}"
-    sed -n '/^<h2><a class="ablack" href="[^"]*">/{s/.*href="\([^"]*\)">.*/\1/;p;}' "$@" 2> /dev/null
+    sed -n '/^<h2><a class="p-name" href="[^"]*">/{s/.*href="\([^"]*\)">.*/\1/;p;}' "$@" 2> /dev/null
 }
 
 # Rebuilds tag_*.html files
@@ -952,7 +960,7 @@ rebuild_tags() {
 #
 # $1 the html file
 get_post_title() {
-    awk '/<h2><a class="ablack" href=".+">/, /<\/a><\/h2>/{if (!/<h2><a class="ablack" href=".+">/ && !/<\/a><\/h2>/) print}' "$1"
+    awk '/<h2><a class="p-name" href=".+">/, /<\/a><\/h2>/{if (!/<h2><a class="p-name" href=".+">/ && !/<\/a><\/h2>/) print}' "$1"
 }
 
 # Return the post author
@@ -1051,7 +1059,7 @@ make_rss() {
 # generate headers, footers, etc
 create_includes() {
     {
-        echo "<h1 class=\"nomargin\"><a class=\"ablack\" href=\"$global_url/$index_file\">$global_title</a></h1>" 
+        echo "<h1 class=\"nomargin\"><a class=\"p-name\" href=\"$global_url/$index_file\">$global_title</a></h1>" 
         echo "<nav><p><a href=\"$global_url\">$template_archive_index_page</a> <a href=\"$archive_index\">$template_archive_title</a>  <a href=\"$tags_index\">$template_tags_title</a> </p></nav>"
    echo "<div id=\"description\">$global_description</div>"   
  } > ".title.html"
@@ -1099,7 +1107,7 @@ create_css() {
     if [[ ! -f blog.css ]]; then 
         # blog.css directives will be loaded after main.css and thus will prevail
         echo '#title{font-size: x-large;}
-        a.ablack{color:black !important;}
+        a.p-name{color:black !important;}
         li{margin-bottom:8px;}
         ul,ol{margin-left:24px;margin-right:24px;}
         .subtitle{font-size:small;margin:12px 0px;line-height: 2.3;}
@@ -1143,7 +1151,27 @@ a.source::after { content: '\A\A';     white-space: pre;}
 #webmentions img 
 {border-radius:90px;height:2rem;object-fit:cover;margin-right:-10px} 
 
+/* Open heart */
+open-heart {
+  border:1px solid var(--fg);
+  border-radius:.4em;
+  padding:.4em
+}
+open-heart:not([disabled]):hover,
+open-heart:not([disabled]):focus {
+  border-color:var(--link-color);
+  cursor:pointer
+}
+open-heart[disabled] {
+  background:var(--code-color);
+  color:var(--code-background-color);
+  cursor:not-allowed
+}
 
+open-heart[count]:not([count="0"])::after {
+  content:attr(count);
+        padding-left:.5rem;
+}
 
 ' > blog.css
     fi
@@ -1482,7 +1510,7 @@ do_main() {
     create_css
     create_includes
     [[ $1 == post ]] && write_entry "$@"
-    [[ $1 == rebuild ]] && rebuild_all_entries && rebuild_tags 
+    [[ $1 == rebuild ]]  && rebuild_all_entries && rebuild_tags
     [[ $1 == delete ]] && rm "$2" &> /dev/null && rebuild_tags
     if [[ $1 == edit ]]; then
         if [[ $2 == -n ]]; then
