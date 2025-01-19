@@ -19,7 +19,7 @@ What's new
 * replaced default CSS with that of [bearblog](https://github.com/HermanMartinus/bearblog/)
 * added [Open Heart](https://openheart.fyi/) protocol
 
-[![demo](https://dead.garden/blog/img/bashblog.png)](https://dead.garden/blog/img/bashblog.png)
+[![](https://dead.garden/blog/img/bashblog_wm.png)](https://dead.garden/blog/img/bashblog_wm.png)
 
 Tipps
 ----
