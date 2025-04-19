@@ -7,7 +7,7 @@ I am a long time fan of the original bashblog by [cfenollosa](https://github.com
 
 *How simple? Just type `./bb.sh post` and start writing your blogpost.*
 
-[![Tutorial video](https://dead.garden/blog/img/bashblog_tutorial_thumb.png)](https://dead.garden/blog/img/bashblog_tutorial.gif)
+[![Tutorial video](https://dead.garden/blog/img/bashblog_tutorial.gif)](https://dead.garden/blog/img/bashblog_tutorial.gif)
 
 What's new
 -----
