@@ -571,7 +571,6 @@ parse_file() {
         fi
     # replace symbol with open heart protocol https://openheart.fyi/
     sed -i "s|&lt;❤️>|<open-heart href=\"https://corazon.sploot.com?id=$global_url/$filename\"  emoji=\"❤️\">❤️</open-heart><!-- load webcomponent --><script src=\"https://unpkg.com/open-heart-element\" type=\"module\"></script><!-- when the webcomponent loads, fetch the current counts for that page --><script>\nwindow.customElements.whenDefined('open-heart').then(() => {\nfor (const oh of document.querySelectorAll('open-heart')) {\noh.getCount()\n}\n})\n// refresh component after click\nwindow.addEventListener('open-heart', e => {\ne \&\& e.target \&\& e.target.getCount \&\& e.target.getCount()})</script>|" $content
-
     done < "$1"
 
     # Create the actual html page
@@ -617,7 +616,7 @@ if [[ -n $global_wm_enabled ]]; then
         read -r wm_value
             if [[ $wm_value == y* || $wm_value == Y* ]]; then
             wm_tags="webmention, "
-            echo '(L)ike/(Re)ply/(B)ookmark/(Rs)vp?' 
+            echo '(L)ike/(C)omment/(B)ookmark/(Rs)vp/(R)e(p)ost?' 
             read -r wm_type
             echo "URL:"
             read -r wm_URL
@@ -639,7 +638,12 @@ if [[ -n $global_wm_enabled ]]; then
                     wm_prepostion='to'
                     wm_extra='u-in'
                     read -r rsvp_value
-                    elif [[ $wm_type == re* || $wm_type == RE* || $wm_type == Re* ]]; then
+                    elif [[ $wm_type == rp* || $wm_type == RP* ||  $wm_type == Rp*  ]]; then
+                    wm_type_full='repost'
+                    wm_text="Repost"
+                    wm_prepostion='of'
+                    wm_extra='u'
+                    elif [[ $wm_type == c* || $wm_type == C* ]]; then
                     wm_type_full='reply'
                     wm_text="Reply"
                     wm_prepostion='to'
@@ -656,6 +660,8 @@ if [[ -n $global_wm_enabled ]]; then
                 fi
 # Put Webmention code into line 2 before opening the editor
         wm_formatted_type="$wm_extra-$wm_type_full-$wm_prepostion"
+	wm_url_title=$(curl $wm_URL |  perl -l -0777 -ne 'print $1 if /<title.*?>\s*(.*?)\s*<\/title/si')
+
         if [[ $rsvp == "true" ]]; then
            echo "<p class=\"rsvp\">RSVP <data class='p-rsvp' value='$rsvp_value'>$rsvp_value</data> to <a class=\"$wm_formatted_type\" href=\"$wm_URL\"> $wm_url_title </a> <p class=e-content>$wm_message</p>" >> "$TMPFILE"
         else
@@ -1109,7 +1115,6 @@ create_css() {
     if [[ ! -f blog.css ]]; then 
         # blog.css directives will be loaded after main.css and thus will prevail
         echo '#title{font-size: x-large;}
-        a.p-name{color:black !important;}
         li{margin-bottom:8px;}
         ul,ol{margin-left:24px;margin-right:24px;}
         .subtitle{font-size:small;margin:12px 0px;line-height: 2.3;}
@@ -1137,11 +1142,17 @@ font-weight:bold
 }
 
 /* Sent Webmentions */
-.like::before {content:"❤️";padding-right:.66rem;}
-.reply::before {content:"🗨️";padding-right:.66rem;}
-.bookmark::before {content:"🔖";padding-right:.66rem;}
-.rsvp::before {content:"📅";padding-right:.66rem;}
+.like::before {content:"❤️";}
+.reply::before {content:"🗨️";}
+.bookmark::before {content:"🔖";}
+.rsvp::before {content:"📅";}
+.repost::before {content:"🔁"}
 
+.like::before,
+.reply::before,
+.rsvp::before,
+.repost::before {
+padding-right:.66rem;}
 
 /* Webmention.js */
 
