@@ -1255,12 +1255,6 @@ footer {
     text-align: center;
 }
 
-
-h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
-    font-family: var(--font-main);
-    color: var(--heading-color);
-}
-
 a {
     color: var(--link-color);
     cursor: pointer;
@@ -1269,6 +1263,11 @@ a {
 
 a:hover {
     text-decoration: underline; 
+}
+
+h1 *, h2 *, h3 *, h4 *, h5 *, h6 * {
+    font-family: var(--font-main);
+    color: var(--heading-color);
 }
 
 nav a {
