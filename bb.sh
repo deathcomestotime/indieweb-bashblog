@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# BashBlog, a simple blog system written in a single bash script
-# (C) Carlos Fenollosa <carlos.fenollosa@gmail.com>, 2011-2016 and contributors
+# IndieWeb BashBlog, a fork of the simple blog system written in a single bash script by (C) Carlos Fenollosa <carlos.fenollosa@gmail.com>, 2011-2016 and contributors
 # https://github.com/carlesfe/bashblog/contributors
+# Fork by Jo, CC0
 # Check out README.md for more details
 
 # Global variables
@@ -17,8 +17,7 @@ global_config=".config"
 # by the 'global_config' file contents
 global_variables() {
     global_software_name="BashBlog - Indieweb Version"
-    global_software_version="1.0"
-    
+    global_software_version="1.1"    
     global_lang="en"
     # Blog title
     global_title="My fancy blog"
@@ -31,8 +30,8 @@ global_variables() {
 
     # Your name
     global_author="John Smith"
-    # You can use twitter or facebook or anything for global_author_url
-    global_author_url="https://twitter.com/example" 
+    # You can use anything for global_author_url
+    global_author_url="https://example.com/about" 
     # Your email
     global_email="john@smith.com"
 
@@ -59,15 +58,6 @@ global_variables() {
     # or change it to your own URL
     global_feedburner=""
 
-    # Change this to your username if you want to use twitter for comments
-    global_twitter_username=""
-    # Default image for the Twitter cards. Use an absolute URL
-    global_twitter_card_image=""
-    # Set this to false for a Twitter button with share count. The cookieless version
-    # is just a link.
-    global_twitter_cookieless="true"
-    # Default search page, where tweets more than a week old are hidden
-    global_twitter_search="twitter"
 
     # Change this to your disqus username to use disqus for comments
     global_disqus_username=""
@@ -86,7 +76,7 @@ global_variables() {
     non_blogpost_files=()
 
     # feed file (rss in this case)
-    blog_feed="feed.rss"
+    blog_feed="feed.xml"
     number_of_feed_articles="10"
     # "cut" blog entry when putting it to index page. Leave blank for full articles in front page
     # i.e. include only up to first '<hr>', or '----' in markdown
@@ -121,9 +111,7 @@ global_variables() {
     html_exclude=()
 
     # Localization and i18n
-    # "Comments?" (used in twitter link after every post)
-    template_comments="Comments?"
-    # "Read more..." (link under cut article on index page)
+     # "Read more..." (link under cut article on index page)
     template_read_more="Read more..."
     # "View more posts" (used on bottom of index page as link to archive)
     template_archive="View more posts"
@@ -147,10 +135,7 @@ global_variables() {
     template_subscribe="Subscribe"
     # "Subscribe to this page..." (used as text for browser feed button that is embedded to html)
     template_subscribe_browser_button="Subscribe to this page..."
-    # "Tweet" (used as twitter text button for posting to twitter)
-    template_twitter_button="Tweet"
-    template_twitter_comment="&lt;Type your comment here but please leave the URL so that other people can follow the comments&gt;"
-    
+
     # The locale to use for the dates displayed on screen
     date_format="%B %d, %Y"
     date_locale="C"
@@ -356,61 +341,6 @@ edit() {
     fi
 }
 
-# Create a Twitter summary (twitter "card") for the post
-#
-# $1 the post file
-# $2 the title
-twitter_card() {
-    [[ -z $global_twitter_username ]] && return
-    
-    echo "<meta name='twitter:card' content='summary' >"
-    echo "<meta name='twitter:site' content='@$global_twitter_username' >"
-    echo "<meta name='twitter:title' content='$2' >" # Twitter truncates at 70 char
-    description=$(grep -v "^<p>$template_tags_line_header" "$1" | sed -e 's/<[^>]*>//g' | tr '\n' ' ' | sed "s/\"/'/g" | head -c 250) 
-    echo "<meta name='twitter:description' content=\"$description\" >"
-
-    # For the image we try to locate the first image in the article
-    image=$(sed -n '2,$ d; s/.*<img.*src="\([^"]*\)".*/\1/p' "$1") 
-
-    # If none, then we try a global setting image
-    [[ -z $image ]] && [[ -n $global_twitter_card_image ]] && image=$global_twitter_card_image
-
-    # If none, return
-    [[ -z $image ]] && return
-
-    # Final housekeeping
-    [[ $image =~ ^https?:// ]] || image=$global_url/$image # Check that URL is absolute
-    echo "<meta name='twitter:image' content='$image' >"
-}
-
-# Adds the code needed by the twitter button
-#
-# $1 the post URL
-twitter() {
-    [[ -z $global_twitter_username ]] && return
-
-    if [[ -z $global_disqus_username ]]; then
-        if [[ $global_twitter_cookieless == true ]]; then 
-            id=$RANDOM
-
-            search_engine="https://twitter.com/search?q="
-
-            echo "<p id='twitter'><a href='http://twitter.com/intent/tweet?url=$1&text=$template_twitter_comment&via=$global_twitter_username'>$template_comments $template_twitter_button</a> "
-            echo "<a href='$search_engine""$1'><span id='count-$id'></span></a>&nbsp;</p>"
-            return;
-        else 
-            echo "<p id='twitter'>$template_comments&nbsp;"; 
-        fi
-    else
-        echo "<p id='twitter'><a href=\"$1#disqus_thread\">$template_comments</a> &nbsp;"
-    fi  
-
-    echo "<a href=\"https://twitter.com/share\" class=\"twitter-share-button\" data-text=\"$template_twitter_comment\" data-url=\"$1\""
-    echo " data-via=\"$global_twitter_username\""
-    echo ">$template_twitter_button</a>	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=\"//platform.twitter.comwidgets.js\";fjs.parentNode.insertBefore(js,fjs);}}(document,\"script\",\"twitter-wjs\");</script>"
-    echo "</p>"
-}
-
 # Check if the file is a 'boilerplate' (i.e. not a post)
 # The return values are designed to be used like this inside a loop:
 # is_boilerplate_file <file> && continue
@@ -463,7 +393,6 @@ create_html_page() {
         cat ".header.html"
         echo "<title>$title</title>"
         google_analytics
-        twitter_card "$content" "$title"
         echo "</head><body>"
         # stuff to add before the actual body content
         [[ -n $body_begin_file ]] && cat "$body_begin_file"
@@ -492,11 +421,11 @@ create_html_page() {
                 echo "<!-- $date_inpost: #$(LC_ALL=$date_locale date +"$date_format_timestamp" --date="$timestamp")# -->"
             fi
             if [[ -z $timestamp ]]; then
-                echo -n "<p class=\"subtitle\"><time class='dt-published' datetime=$(date '+%Y-%m-%d')>$(LC_ALL=$date_locale date +"$date_format")</time>"
-            else
-                echo -n "<p class=\"subtitle\"><time class='dt-published' datetime=$(date '+%Y-%m-%d')>$(LC_ALL=$date_locale date +"$date_format" --date="$timestamp")</time>"
-            fi
-            [[ -n $author ]] && echo -e " &mdash; <span class=\"p-author h-card\"><a href=\"$global_url\" class=\"u-url\"><img aria-hidden=true src=$global_icon alt=\"\" class=\"u-photo\"></a>$global_author</span> ($global_license)"
+                echo -n "<p class=\"subtitle\"><time class='dt-published' datetime=\"$(date '+%Y-%m-%d')\">$(LC_ALL=$date_locale date +"$date_format")"  
+   else
+                echo -n "<p class=\"subtitle\"><time class='dt-published' datetime=\"$(date '+%Y-%m-%d')\">$(LC_ALL=$date_locale date +"$date_format" --date="$timestamp")"
+       fi
+            [[ -n $author ]] && echo -e "</time> &#8212; <span class=\"p-author h-card\"><a href=\"$global_url\" class=\"u-url\"><img aria-hidden='true' src='$global_icon' alt=\"\" class=\"u-photo\" /></a>$global_author</span> ($global_license)"
             echo "</p>"
             echo '<!-- text begin -->' # This marks the text body, after the title, date...
         fi
@@ -504,7 +433,6 @@ create_html_page() {
         if [[ $index == no ]]; then
             echo -e '<!-- text end -->'
 
-            twitter "$global_url/$file_url"
             echo '</article>'
             echo '<!-- entry end -->' # absolute end of the post
         fi
@@ -798,7 +726,7 @@ all_posts() {
             fi
             # Title
             title=$(get_post_title "$i")
-            echo -n "<li><a href=\"$i\">$title</a> &mdash;"
+            echo -n "<li><a href=\"$i\">$title</a> &#8212;"
             # Date
             date=$(LC_ALL=$date_locale date -r "$i" +"$date_format")
             echo " $date</li>"
@@ -808,7 +736,7 @@ all_posts() {
  
     } 3>&1 >"$contentfile"
 
-    create_html_page "$contentfile" "$archive_index.tmp" yes "$global_title &mdash; $template_archive_title" "$global_author"
+    create_html_page "$contentfile" "$archive_index.tmp" yes "$global_title &#8212; $template_archive_title" "$global_author"
     mv "$archive_index.tmp" "$archive_index"
     chmod 644 "$archive_index"
     rm "$contentfile"
@@ -836,14 +764,14 @@ all_tags() {
                 2|3|4) word=$template_tags_posts_2_4;;
                 *) word=$template_tags_posts;;
             esac
-            echo "<li><a href=\"$i\">$tagname</a> &mdash; $nposts $word</li>"
+            echo "<li><a href=\"$i\">$tagname</a> &#8212; $nposts $word</li>"
         done
         echo "" 1>&3
         echo "</ul>"
   
     } 3>&1 > "$contentfile"
 
-    create_html_page "$contentfile" "$tags_index.tmp" yes "$global_title &mdash; $template_tags_title" "$global_author"
+    create_html_page "$contentfile" "$tags_index.tmp" yes "$global_title &#8212; $template_tags_title" "$global_author"
     mv "$tags_index.tmp" "$tags_index"
     chmod 644 "$tags_index"
     rm "$contentfile"
@@ -958,7 +886,7 @@ rebuild_tags() {
     while IFS='' read -r i; do
         tagname=${i#./"$prefix_tags"}
         tagname=${tagname%.tmp.html}
-        create_html_page "$i" "$prefix_tags$tagname.html" yes "$global_title &mdash; $template_tag_title \"$tagname\"" "$global_author"
+        create_html_page "$i" "$prefix_tags$tagname.html" yes "$global_title &#8212; $template_tag_title \"$tagname\"" "$global_author"
         rm "$i"
     done < <(ls -t ./"$prefix_tags"*.tmp.html 2>/dev/null)
     echo
@@ -975,7 +903,7 @@ get_post_title() {
 #
 # $1 the html file
 get_post_author() { 
-    awk '/<time .+/, /<!-- text begin -->/{if (!/<time. +/ && !/<!-- text begin -->/) print}' "$1" | sed 's/<\/time>//g'
+    awk '/<time .+/, /<!-- text begin -->/{if (!/<time. +/ && !/<!-- text begin -->/) print}' "$1" 
 }
 
 # Displays a list of the tags
@@ -1014,7 +942,7 @@ list_posts() {
     n=1
     while IFS='' read -r i; do
         is_boilerplate_file "$i" && continue
-        line="$n # $(get_post_title "$i") # $(LC_ALL=$date_locale date -r "$i" +"$date_format")"
+        line="$n # $(get_post_title "$i") # $(echo "\033[0;1m$(echo $i |  cut -c 3- | sed "s/.html//" )\033[0m") # $(LC_ALL=$date_locale date -r "$i" +"$date_format")"
         lines+=$line\\n
         n=$(( n + 1 ))
     done < <(ls -t ./*.html)
@@ -1030,8 +958,9 @@ make_rss() {
     while [[ -f $rssfile ]]; do rssfile=$blog_feed.$RANDOM; done
 
     {
-        pubdate=$(LC_ALL=C date +"$date_format_full")
-        echo '<?xml version="1.0" encoding="UTF-8" ?>' 
+         pubdate=$(LC_ALL=C date +"$date_format_full")
+        echo '<?xml version="1.0" encoding="UTF-8" ?>'
+        echo '<?xml-stylesheet type="text/xsl" href="style.xsl"?>' 
         echo '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">' 
         echo "<channel><title>$global_title</title><link>$global_url/$index_file</link>"
         echo "<description>$global_description</description><language>en</language>"
@@ -1097,7 +1026,7 @@ create_includes() {
 #        protected_mail=${global_email//@/&#64;}
 #        protected_mail=${protected_mail//./&#46;}
         echo "<footer>Subscribe via <a href="$blog_feed">rss</a>!<br>Contact me via <a rel=\"me\" href=\"mailto:$global_email\">$global_email</a><br>"
-        echo '<p><small>Generated using <a href="https://github.com/muscadomestica/indieweb-bashblog" target="_blank">indieweb-bashblog</a>, a single bash script to easily create blogs like this one &mdash; with Webmention and Microformats support</small></p></footer>'
+        echo '<p><small>Generated using <a href="https://github.com/muscadomestica/indieweb-bashblog" target="_blank">indieweb-bashblog</a>, a single bash script to easily create blogs like this one <br> with Webmention and Microformats support</small></p></footer>'
         } >> ".footer.html"
     fi
 }
@@ -1123,7 +1052,7 @@ create_css() {
         h2{padding-top:42px;margin-bottom:8px;}
 
         img{max-width:100%;}
-        #twitter{line-height:20px;vertical-align:top;text-align:right;font-style:italic;color:#333;margin-top:24px;font-size:14px;}
+
 /* Microformats */
 
 .h-card {
@@ -1169,7 +1098,8 @@ a.source::after { content: '\A\A';     white-space: pre;}
 open-heart {
   border:1px solid var(--fg);
   border-radius:.4em;
-  padding:.4em
+  padding:.4em;
+border: 1px solid var(--code-color);
 }
 open-heart:not([disabled]):hover,
 open-heart:not([disabled]):focus {
@@ -1370,6 +1300,68 @@ ul.blog-posts li a:visited {
     fi
 }
 
+# Create XSLT file to style RSS feed in Web browser view
+
+create_xslt() {
+if [ ! -f "style.xsl" ]; then
+echo "$(cat <<EOM 
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet
+  version="2.0"
+  xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  exclude-result-prefixes="atom"
+>
+  <xsl:output method="html" version="1.0" encoding="UTF-8" indent="yes"/>
+  <xsl:template match="/rss/channel">
+    <html>
+    <head>
+        <title><xsl:value-of select="title"/></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+        
+<link rel="stylesheet" type="text/css" href="main.css" />
+<link rel="stylesheet" type="text/css" href="blog.css" />
+  </head>
+<body>
+<header>
+<h1 class="nomargin"><a class="p-name" href="$global_url/$index_file">$global_title</a></h1>
+<nav><p><a href="$global_url">Home</a> <a href="$archive_index">All posts</a>  <a href="$tags_index.html">All tags</a> </p></nav>
+<div id="description">$global_description</div>
+</header>
+<main>
+ <xsl:for-each select="item">
+<article class="h-entry">
+<h2>   <a>   <xsl:attribute name="href">
+              <xsl:value-of select="link"/>
+            </xsl:attribute>
+            <xsl:value-of select="title"/></a>
+</h2>
+<p><time>
+                <xsl:attribute name="datetime">
+                  <xsl:value-of select="pubDate"/>
+                </xsl:attribute>
+                <xsl:value-of select="substring(pubDate, 1, 16)"/> (<xsl:value-of select="substring(pubDate, 18, 5)"/>)</time>
+
+</p>
+</article>
+     </xsl:for-each>
+<nav><a href="$archive_index">View more&#8230;</a></nav>
+</main>
+<footer>This <strong>is</strong> the <a href="$blog_feed">rss</a> feed! <br /><a href="https://subscribeopenly.net/subscribe/?url=$global_url/$blog_feed">Subscribe</a> to it by dropping the URL in your feed reader of choice.<br />Contact me via <a rel="me" href="mailto:$global_email">$global_email</a><br />
+<p><small>Generated using <a href="https://github.com/muscadomestica/indieweb-bashblog" target="_blank">indieweb-bashblog</a>, a single bash script to easily create blogs like this one<br /> with Webmention and Microformats support</small></p></footer>
+  </body>
+  </html>
+  </xsl:template>
+</xsl:stylesheet>
+
+EOM
+)" > style.xsl
+fi
+
+}
+
 # Regenerates all the single post entries, keeping the post content but modifying
 # the title, html structure, etc
 rebuild_all_entries() {
@@ -1424,6 +1416,160 @@ usage() {
     echo "                            use '-n' to sort list by number of posts"
     echo ""
     echo "For more information please open $0 in a code editor and read the header and comments"
+}
+
+
+interface() {
+# Completely stolen from https://unix.stackexchange.com/a/790822 >:)
+## Various color options follow
+# INTERFACE OPTIONS
+COLOR_BLACK=0
+COLOR_RED=1
+COLOR_GREEN=2
+COLOR_YELLOW=3
+COLOR_BLUE=4
+COLOR_MAGENTA=5
+COLOR_CYAN=6
+COLOR_WHITE=7
+COLOR_OFF=9
+FG_BLACK=$(echo -e "\033[3${COLOR_BLACK}m")
+FG_RED=$(echo -e "\033[3${COLOR_RED}m")
+FG_GREEN=$(echo -e "\033[3${COLOR_GREEN}m")
+FG_YELLOW=$(echo -e "\033[3${COLOR_YELLOW}m")
+FG_BLUE=$(echo -e "\033[3${COLOR_BLUE}m")
+FG_MAGENTA=$(echo -e "\033[3${COLOR_MAGENTA}m")
+FG_CYAN=$(echo -e "\033[3${COLOR_CYAN}m")
+FG_WHITE=$(echo -e "\033[3${COLOR_WHITE}m")
+FG_OFF=$(echo -e "\033[3${COLOR_OFF}m")
+BG_BLACK=$(echo -e "\033[4${COLOR_BLACK}m")
+BG_RED=$(echo -e "\033[4${COLOR_RED}m")
+BG_GREEN=$(echo -e "\033[4${COLOR_GREEN}m")
+BG_YELLOW=$(echo -e "\033[4${COLOR_YELLOW}m")
+BG_BLUE=$(echo -e "\033[4${COLOR_BLUE}m")
+BG_MAGENTA=$(echo -e "\033[4${COLOR_MAGENTA}m")
+BG_CYAN=$(echo -e "\033[4${COLOR_CYAN}m")
+BG_WHITE=$(echo -e "\033[4${COLOR_WHITE}m")
+BG_OFF=$(echo -e "\033[4${COLOR_OFF}m")
+FG_INFO=$(echo -e "${FG_CYAN}")
+FG_DANGER=$(echo -e "${FG_RED}")
+FG_WARNING=$(echo -e "${FG_YELLOW}")
+FG_SUCCESS=$(echo -e "${FG_GREEN}")
+BG_INFO=$(echo -e "${BG_CYAN}")
+BG_DANGER=$(echo -e "${BG_RED}")
+BG_WARNING=$(echo -e "${BG_YELLOW}")
+BG_SUCCESS=$(echo -e "${BG_GREEN}")
+
+# Define menu colors
+## Change to your hearts desire
+MENU_FG_COLOR=${FG_WHITE}
+MENU_BG_COLOR=${BG_MAGENTA}
+MENU_HIGHLIGHT_FG_COLOR=${FG_MAGENTA}
+MENU_HIGHLIGHT_BG_COLOR=${BG_WHITE}
+
+# Define menu title colors
+MENU_TITLE_FG_COLOR=${FG_WHITE}
+MENU_TITLE_BG_COLOR=${BG_BLACK}
+
+
+# Define menu width
+MENU_WIDTH=60
+
+# Define menu title padding
+MENU_TITLE_PADDING=5
+
+# Menu title
+MENU_TITLE="Use arrow keys to navigate, press Enter to select. "
+MENU_TITLE_LENGTH=${#MENU_TITLE}
+MENU_TITLE_LENGTH=$((MENU_TITLE_LENGTH - MENU_TITLE_PADDING))
+if [[ $MENU_TITLE_LENGTH -gt $MENU_WIDTH ]]; then
+    MENU_WIDTH=$MENU_TITLE_LENGTH
+fi
+# Menu options
+options=("Post" "Edit" "Rebuild" "Help" "Exit")
+selected=0  # Index of the selected menu item
+
+# Function to display the menu
+display_menu() {
+    clear
+# Disable word wrapping
+echo -e "\033[?7l"
+
+# Hide cursor
+#echo -e "\033[?25l"
+    local term_width=$(tput cols)
+    local start_col=$(( (term_width - MENU_WIDTH) / 2 ))
+    local padding=$((MENU_WIDTH - MENU_TITLE_LENGTH))
+    local filler=$(printf '%*s' "$padding" '')
+    local title_filler=$(printf '%*s' "$MENU_TITLE_PADDING" '')
+    printf "\n\n"  # Add two empty rows above the menu title
+    printf "%${start_col}s" ""
+    echo -e "${MENU_TITLE_BG_COLOR}${MENU_TITLE_FG_COLOR}${title_filler}${MENU_TITLE}${title_filler}${FG_OFF}${BG_OFF}"
+    for i in "${!options[@]}"; do
+        local padding=$((MENU_WIDTH - ${#options[$i]} - 4))
+        local filler=$(printf '%*s' "$padding" '')
+        if [[ $i -eq $selected ]]; then
+            printf "%${start_col}s" ""  # Align to center
+            echo -e "${MENU_HIGHLIGHT_BG_COLOR}${MENU_HIGHLIGHT_FG_COLOR} > ${options[$i]} $filler ${FG_OFF}${BG_OFF}"
+        else
+            printf "%${start_col}s" ""  # Align to center
+            echo -e "${MENU_BG_COLOR}${MENU_FG_COLOR}   ${options[$i]} $filler ${FG_OFF}${BG_OFF}"
+        fi
+    done
+}
+# Capture keypresses
+while true; do
+    display_menu
+    read -rsn1 key  # Read a single key
+    if [[ $key == $'\x1b' ]]; then
+        read -rsn2 key  # Read the next two characters
+        if [[ $key == "[A" ]]; then  # Up arrow
+            ((selected--))
+            if [[ $selected -lt 0 ]]; then
+                selected=$((${#options[@]} - 1))
+            fi
+        elif [[ $key == "[B" ]]; then  # Down arrow
+            ((selected++))
+            if [[ $selected -ge ${#options[@]} ]]; then
+                selected=0
+            fi
+        fi
+    elif [[ $key == "" ]]; then  # Enter key
+        case ${options[$selected]} in
+            "Post")
+# Uncomment to view drafts on every "Post" prompt from this menu
+# ls -t drafts/{*.md,*.html} | tac
+$BASH_SOURCE post 
+                ;;
+            "Edit")
+$BASH_SOURCE list
+echo -e "\nEdit what?"
+read ARGUMENT1;
+if [ -e "$ARGUMENT1" ]; then
+$BASH_SOURCE edit "$ARGUMENT1"
+elif [ -e "$ARGUMENT1.md" ]; then
+$BASH_SOURCE edit "$ARGUMENT1.md"
+elif [ -e "$ARGUMENT1.html" ]; then
+$BASH_SOURCE edit "$ARGUMENT1.html"
+else
+echo -e "This file doesn't exist :<\n"
+fi
+                ;;
+            "Rebuild")
+$BASH_SOURCE rebuild
+                ;;
+            "Help")
+usage
+                ;;
+            "Exit")
+               echo "Exiting..."
+               exit 0
+    ;;
+        esac
+        read -p "Press any key to continue..." -n1
+    fi
+done
+exit 0
+
 }
 
 # Delete all generated content, leaving only this script
@@ -1486,8 +1632,7 @@ do_main() {
         echo "Please set your \$EDITOR environment variable. For example, to use nano, add the line 'export EDITOR=nano' to your \$HOME/.bashrc file" && exit
 
     # Check for validity of argument
-    [[ $1 != "reset" && $1 != "post" && $1 != "rebuild" && $1 != "list" && $1 != "edit" && $1 != "delete" && $1 != "tags" ]] && 
-        usage && exit
+    [[ $1 != "reset" && $1 != "post" && $1 != "rebuild" && $1 != "list" && $1 != "edit" && $1 != "delete" && $1 != "tags" ]] && interface && exit
 
     [[ $1 == list ]] &&
         list_posts && exit
@@ -1518,7 +1663,7 @@ do_main() {
 
     [[ $1 == reset ]] &&
         reset && exit
-
+    create_xslt
     create_css
     create_includes
     [[ $1 == post ]] && write_entry "$@"
